@@ -3,63 +3,218 @@
 Ek command `c` = **Claude Code + OmniRoute + ECC agents + 3D Office dashboard**.
 
 - Background mein har model test hota hai (text + tool-call). Sirf **PASS** models use hote hain.
-- Model fail ya token khatam ho to router agle PASS model par switch karta hai; FAIL models auto-retest hote hain.
+- Model fail ya token khatam ho to router agle PASS model par switch karta hai. FAIL models auto-retest hote hain.
 - `c` chalate hi browser mein 2 page khulte hain:
-  - **3D Office** `http://localhost:20130` : sab ECC agents ek office mein. Kaun **WORKING / IDLE / REST / STANDBY** hai, kaun sa model use ho raha hai, kitni baar, kitni der pehle. Mobile aur computer ke liye alag layout (auto).
-  - **OmniRoute Dashboard** `http://localhost:20128` : providers / API keys yahan jodo.
+  - **3D Office** `http://localhost:20130` : sab agents ek office mein (WORKING / IDLE / REST / STANDBY).
+  - **OmniRoute Dashboard** `http://localhost:20128` : yahan providers / API keys jodo.
+
+> **Kaise padhein:** Har command ek **copy box** mein hai. Box ke kone mein **copy icon** dabao, phir Termux ya terminal mein **paste** karke Enter dabao. Sirf apne section ki commands chalao.
 
 ---
 
-## Setup: Mobile (Termux) — 1 command
+## Kaunsa section mujhe chahiye?
 
-Termux **F-Droid** wali lo (Play Store wali purani hai). Phir ye ek command paste karo:
+| Main kahan install kar raha hoon | Section |
+|---|---|
+| Android phone (Termux) | [A. Phone (Termux)](#a-phone-termux) |
+| Windows PC | [B. Windows PC (WSL)](#b-windows-pc-wsl) |
+| Linux PC / Ubuntu | [C. Linux PC](#c-linux-pc) |
+| Mac | [D. Mac](#d-mac) |
+| Install ho gaya, roz ka use | [E. Roz ka use](#e-roz-ka-use) |
+| Kuch kaam nahi kar raha | [F. Dikkat aaye to](#f-dikkat-aaye-to) |
 
-```bash
-pkg install -y git && git clone https://github.com/YOUR_USER/c-termux.git && cd c-termux && bash install.sh
-```
+---
 
-Steps:
-1. Command chalao. Poochhe to **OmniRoute API key** daalo (dashboard se; baad mein bhi daal sakte ho).
-2. Termux ko **Exit** karke dobara kholo (autostart hook lagta hai).
-3. Likho: `c`
-4. Browser khulega: 3D Office + OmniRoute Dashboard. Dashboard mein providers/keys jodo.
+## A. Phone (Termux)
 
-Browser auto-open ke liye (ek baar): Android Settings > Apps > Termux > **"Display over other apps"** ON.
-Behtar: `pkg install termux-api` + Play Store/F-Droid se **Termux:API** app. Nahi ho to `am start` fallback chalta hai.
+> Termux **F-Droid** wali lo. Play Store wali purani hai aur kaam nahi karti.
 
-Mobile par Office page chhota layout (scene upar, agents ki list neeche, swipe tabs) dikhata hai.
-
-## Setup: Computer (Linux / WSL / macOS) — 1 command
+**Step 1: Termux kholo aur packages update karo** (sabse pehle, yahi step sabse zaroori hai)
 
 ```bash
-git clone https://github.com/YOUR_USER/c-termux.git && cd c-termux && bash install.sh
+pkg update -y
 ```
 
-Steps:
-1. Command chalao (git, node 18+, tmux, jq khud install karta hai; apt/dnf/pacman/zypper/apk ya brew). Poochhe to OmniRoute key daalo.
-2. Naya terminal kholo (ya `source ~/.bashrc`).
-3. Likho: `c`
-4. Browser mein 3D Office + OmniRoute Dashboard khulenge.
+Agar beech mein `Y/I/N` poochhe to `Y` likh kar Enter dabao.
+
+**Step 2: Zaroori packages install karo**
+
+```bash
+pkg install -y git jq tmux nodejs curl procps coreutils
+```
+
+**Step 3: Check karo ki sab install hue** (3 versions dikhne chahiye)
+
+```bash
+jq --version && tmux -V && node -v
+```
+
+**Step 4: Repo download karo aur installer chalao**
+
+```bash
+git clone https://github.com/mrshadowsir/c-termux.git
+```
+
+```bash
+cd c-termux && bash install.sh
+```
+
+**Step 5: API key**
+
+Jab `OmniRoute API key` poochhe, key paste karo. Abhi nahi hai to sirf Enter dabao, baad mein bhi daal sakte ho. Key likhte waqt kuch dikhta nahi, ye normal hai.
+
+**Step 6: Termux ko Exit karke dobara kholo**
+
+```bash
+exit
+```
+
+**Step 7: Start karo**
+
+```bash
+c
+```
+
+Browser mein 3D Office aur OmniRoute Dashboard khulenge. Dashboard mein providers/keys jodo.
+
+**Browser auto-open ke liye (ek baar):** Android Settings > Apps > Termux > **Display over other apps** ON karo.
+Behtar: `pkg install termux-api` aur F-Droid se **Termux:API** app install karo.
+
+---
+
+## B. Windows PC (WSL)
+
+> Windows par seedha nahi chalta. **WSL** (Ubuntu) chahiye.
+
+**Step 1: PowerShell ko "Run as administrator" se kholo aur WSL install karo**
+
+```powershell
+wsl --install
+```
+
+**Step 2: PC restart karo**, phir Start menu se **Ubuntu** kholo (pehli baar apna naya username/password banana padega. Ye Ubuntu ka login hai, GitHub ka nahi).
+
+**Step 3: Ubuntu mein packages update karo**
+
+```bash
+sudo apt update && sudo apt install -y git curl
+```
+
+**Step 4: Repo download karo aur installer chalao**
+
+```bash
+git clone https://github.com/mrshadowsir/c-termux.git
+```
+
+```bash
+cd c-termux && bash install.sh
+```
+
+**Step 5: Ubuntu band karke dobara kholo, phir:**
+
+```bash
+c
+```
+
+---
+
+## C. Linux PC
+
+**Step 1: Repo download karo aur installer chalao** (git, node 18+, tmux, jq khud install hote hain)
+
+```bash
+git clone https://github.com/mrshadowsir/c-termux.git
+```
+
+```bash
+cd c-termux && bash install.sh
+```
+
+**Step 2: Naya terminal kholo, phir:**
+
+```bash
+c
+```
 
 Computer par autostart nahi hota: `c` chalao to sab start, `c` band karo to sab band.
-Computer par Office page bada layout dikhata hai (bada 3D scene + side mein agents/models/events).
-Force karna ho: `http://localhost:20130/m` (mobile layout) ya `/d` (desktop layout).
-
-> Linux aur WSL par test hua hai. macOS par best-effort (GNU coreutils chahiye, `brew` se aata hai), pura test nahi hua.
-> Windows par seedha nahi: **WSL** use karo.
 
 ---
 
-## Roz ka use
+## D. Mac
 
-| Command | Kaam |
+> Pehle **Homebrew** (`brew`) install hona chahiye. Mac par best-effort support hai, pura test nahi hua.
+
+**Step 1: Repo download karo aur installer chalao**
+
+```bash
+git clone https://github.com/mrshadowsir/c-termux.git
+```
+
+```bash
+cd c-termux && bash install.sh
+```
+
+**Step 2: Naya terminal kholo, phir:**
+
+```bash
+c
+```
+
+---
+
+## E. Roz ka use
+
+| Kaam | Command |
 |---|---|
-| `c` | Sab start + Claude Code (Ctrl-b 0 = Claude, Ctrl-b 1 = live models) + browser pages |
-| `c-open` | 3D Office + OmniRoute browser mein dobara kholo (`c-open office`, `c-open omni`) |
-| `c-panel` | Status ek nazar mein (`c-panel -w` live). Last line: `VERDICT: ALL OK` = sab theek |
-| `c-stop` | Sab process band |
+| Sab start + Claude Code + browser | `c` |
+| Browser pages dobara kholo | `c-open` |
+| Status ek nazar mein | `c-panel` |
+| Live status | `c-panel -w` |
+| Sab band karo | `c-stop` |
 
-Auto-open band karna ho: `export C_NOOPEN=1`
+Start karo:
+
+```bash
+c
+```
+
+Browser pages dobara kholo (`c-open office` ya `c-open omni` bhi chalta hai):
+
+```bash
+c-open
+```
+
+Status dekho. Last line `VERDICT: ALL OK` ho to sab theek hai:
+
+```bash
+c-panel
+```
+
+Sab band karo:
+
+```bash
+c-stop
+```
+
+Auto-open band karna ho:
+
+```bash
+export C_NOOPEN=1
+```
+
+**API key baad mein daalni ho:**
+
+```bash
+C_TOKEN=apni_key_yahan bash ~/c-termux/install.sh
+```
+
+**Naya version update karna ho:**
+
+```bash
+cd ~/c-termux && git pull && bash install.sh
+```
+
+---
 
 ## 3D Office mein kya dikhta hai
 
@@ -67,38 +222,111 @@ Auto-open band karna ho: `export C_NOOPEN=1`
 - `MAIN` = aapka main Claude Code session, `QUICK` = chhote/fast kaam.
 - Neeche server racks = PASS models (LED hara = abhi use mein).
 - Agent par tap/click = list mein uski detail. List mein filter tabs + search.
-- Upar chips: OmniRoute / Router / Tester / Health / ECC ka OK ya !! status.
-
-## Security
-
-- Token / API key repo mein nahi hai. `install.sh` use `~/.claude/settings.json` mein likhta hai (`chmod 600`), ya `C_TOKEN=... bash install.sh`.
-- Office server sirf `127.0.0.1` par sunta hai (network par khula nahi).
-- OmniRoute dashboard mein API key **zaroor require** karo.
-
-## Dikkat aaye to
-
-| Problem | Hal |
-|---|---|
-| `c: command not found` | Termux: Exit karke dobara kholo. Computer: naya terminal / `source ~/.bashrc` |
-| Browser nahi khula | `c-open` ya seedha `http://localhost:20130` kholo |
-| `c-panel` mein `!!` | Kuch der ruko (models test ho rahe hain). Phir bhi ho to `c-stop` phir `c` |
-| Agents 0 / ECC `!!` | `bash install.sh` dobara (ECC plugin auto-install karta hai). Nahi to Claude Code mein: `/plugin marketplace add https://github.com/affaan-m/ECC` phir `/plugin install ecc@ecc` |
-| `omniroute global install fail` | Koi dikkat nahi, `c` automatically `npx` se chalata hai |
-| Models sab FAIL | OmniRoute dashboard mein provider/key jodo, phir 2 min ruko (auto-retest) |
+- Upar chips: OmniRoute / Router / Tester / Health / ECC ka OK ya `!!` status.
+- Layout force karna ho: `http://localhost:20130/m` (mobile) ya `/d` (desktop).
 
 ---
 
-## GitHub par pehli baar daalna (aap ke liye, ek baar)
+## Security
 
-1. github.com par naya **empty repo** banao: `c-termux` (Private rakho to behtar).
-2. Is folder mein ye chalao (`YOUR_USER` apna GitHub username):
+- Token / API key repo mein nahi hai. `install.sh` use `~/.claude/settings.json` mein likhta hai (`chmod 600`).
+- Office server sirf `127.0.0.1` par sunta hai (network par khula nahi).
+- OmniRoute dashboard mein API key **zaroor require** karo.
+- Apni API key kisi ko share mat karo, na hi GitHub par daalo.
+
+---
+
+## F. Dikkat aaye to
+
+### `jq` / `tmux` / `node` install nahi hua (ABORT message)
+
+Packages ki list purani hai. Ye 3 commands ek ek karke chalao:
 
 ```bash
-cd c-termux
-git init && git add -A && git commit -m "c-termux" && git branch -M main
-git remote add origin https://github.com/YOUR_USER/c-termux.git
-git push -u origin main
+pkg update -y
 ```
 
-3. README mein `YOUR_USER` badal do: `sed -i 's/YOUR_USER/apna_username/g' README.md` (phir commit + push).
-4. Private repo ho to naye phone/computer par clone ke time GitHub token maangega (Settings > Developer settings > Personal access token).
+```bash
+pkg install -y git jq tmux nodejs curl procps coreutils
+```
+
+```bash
+cd ~/c-termux && bash install.sh
+```
+
+Agar `Unable to locate package` ya mirror error aaye:
+
+```bash
+termux-change-repo
+```
+
+Arrow keys aur Space se koi ek mirror chuno, OK dabao, phir upar ki 3 commands dobara chalao.
+
+### `git clone` ke time Username/Password poochhe
+
+URL galat type hua hoga. Ctrl + C dabao, phir purana folder hatao aur URL **copy-paste** karo:
+
+```bash
+cd ~ && rm -rf c-termux
+```
+
+```bash
+git clone https://github.com/mrshadowsir/c-termux.git
+```
+
+### `c: command not found`
+
+Termux: Exit karke dobara kholo. Computer: naya terminal kholo, ya:
+
+```bash
+source ~/.bashrc
+```
+
+### Browser nahi khula
+
+```bash
+c-open
+```
+
+Ya seedha browser mein `http://localhost:20130` kholo.
+
+### `c-panel` mein `!!` dikhe
+
+Kuch der ruko (models test ho rahe hain). Phir bhi ho to:
+
+```bash
+c-stop
+```
+
+```bash
+c
+```
+
+### Agents 0 ya ECC `!!`
+
+Installer dobara chalao (ECC plugin auto-install karta hai):
+
+```bash
+cd ~/c-termux && bash install.sh
+```
+
+Nahi ho to Claude Code ke andar ye 2 commands chalao:
+
+```
+/plugin marketplace add https://github.com/affaan-m/ECC
+/plugin install ecc@ecc
+```
+
+### `omniroute global install fail`
+
+Koi dikkat nahi, `c` automatically `npx` se chalata hai.
+
+### Sab models FAIL
+
+OmniRoute dashboard (`http://localhost:20128`) mein provider/key jodo, phir 2 min ruko (auto-retest hota hai).
+
+### Phone mein "Permission denied" ya script nahi chali
+
+```bash
+chmod +x ~/c-termux/install.sh && bash ~/c-termux/install.sh
+```
