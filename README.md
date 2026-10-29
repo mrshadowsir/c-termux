@@ -29,6 +29,26 @@ Ek command `c` = **Claude Code + OmniRoute + ECC agents + 3D Office dashboard**.
 
 > Termux **F-Droid** wali lo. Play Store wali purani hai aur kaam nahi karti.
 
+### Sabse aasan: sirf 1 command (har naye phone par yahi)
+
+Termux kholo, ye ek command paste karo aur Enter dabao. Baaki sab (packages, download, install, settings) **khud hota hai**. Bas ek baar API key poochhegi.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/setup.sh | bash
+```
+
+Key pehle se command mein dena ho (phir kuch poochhega hi nahi):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/setup.sh | C_TOKEN=apni_key_yahan bash
+```
+
+Khatam hone par Termux ko Exit karke dobara kholo. Services apne aap start ho jayengi. Phir likho `c`.
+
+Ye command dobara chalana safe hai. Ye purana version update bhi kar deta hai.
+
+### Manual tareeka (agar upar wali command na chale)
+
 **Step 1: Termux kholo aur packages update karo** (sabse pehle, yahi step sabse zaroori hai)
 
 ```bash
@@ -119,6 +139,14 @@ c
 ---
 
 ## C. Linux PC
+
+**Sabse aasan (1 command):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/setup.sh | bash
+```
+
+Ya manual:
 
 **Step 1: Repo download karo aur installer chalao** (git, node 18+, tmux, jq khud install hote hain)
 
