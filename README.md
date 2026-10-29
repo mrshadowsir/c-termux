@@ -191,6 +191,8 @@ Koi mirror chuno (arrow keys + Space, phir OK), phir `cd ~/c-termux && bash inst
 
 **API key galat bataya:** OmniRoute dashboard mein key dobara copy karo, phir `cd ~/c-termux && bash install.sh`.
 
+**`claude native binary not installed`:** Termux par naya Claude Code nahi chalta. Installer apne aap `2.1.112` laga deta hai. Haath se: `npm i -g @anthropic-ai/claude-code@2.1.112`. Doosra version: `C_CLAUDE_VER=x.y.z bash ~/c-termux/install.sh`.
+
 **Claude start nahi hua (models PASS nahi):** Dashboard (`http://localhost:20128`) mein provider/key jodo, 2 min ruko (auto-retest hota hai), phir `c-panel` dekho, phir `c`.
 
 **`c-panel` mein `!!`:** Kuch der ruko. Phir bhi ho to `c-stop` aur `c`.

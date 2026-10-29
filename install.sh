@@ -196,21 +196,27 @@ else bad "Node 18+ chahiye (abhi: $(node -v 2>/dev/null)). https://nodejs.org se
 
 # ---------- 3. Claude Code + OmniRoute: pehle version check ----------
 step "Claude Code aur OmniRoute (check + update)"
-npm_latest() { # pkg label cmd fatal(1/0)
-  local pkg="$1" label="$2" cmd="$3" fatal="$4" have=0 act cur latest v
+# Termux par naya Claude Code nahi chalta (native binary chahiye, Termux ke liye hai nahi).
+# Isliye Termux par aakhri chalne wala version pin hota hai. Badalna ho: C_CLAUDE_VER=x.y.z bash install.sh
+CLAUDE_PIN=""; [ "$PLAT" = termux ] && CLAUDE_PIN="${C_CLAUDE_VER:-2.1.112}"
+npm_latest() { # pkg label cmd fatal(1/0) [pin-version]
+  local pkg="$1" label="$2" cmd="$3" fatal="$4" pin="${5:-}" have=0 broken=0 act cur want v
   command -v "$cmd" >/dev/null 2>&1 && have=1
-  if [ "$have" = 1 ] && [ "${C_SKIP_UPDATE:-0}" = 1 ]; then ok "$label pehle se hai (update skip)"; return; fi
+  if [ "$have" = 1 ] && [ "$cmd" = claude ] && ! $TO20 claude --version >/dev/null 2>&1; then broken=1; fi
+  if [ "$have" = 1 ] && [ "$broken" = 0 ] && [ "${C_SKIP_UPDATE:-0}" = 1 ]; then ok "$label pehle se hai (update skip)"; return; fi
   cur="$(ver_npm "$pkg")"
-  latest="$($TO30 npm view "$pkg" version 2>>"$LOG" | tail -1)"
-  if [ "$have" = 1 ] && [ -n "$cur" ] && [ "$cur" = "$latest" ]; then ok "$label latest hai (v$cur)"; return; fi
-  if [ "$have" = 1 ]; then act="update"; [ -n "$cur" ] && [ -n "$latest" ] && info "$label: v$cur -> v$latest"; else act="install"; fi
-  if retry 2 "$label $act (latest)" npm i -g "$pkg@latest" --no-fund --no-audit --loglevel=error; then
+  if [ -n "$pin" ]; then want="$pin"; else want="$($TO30 npm view "$pkg" version 2>>"$LOG" | tail -1)"; fi
+  if [ "$have" = 1 ] && [ "$broken" = 0 ] && [ -n "$cur" ] && [ "$cur" = "$want" ]; then ok "$label ${pin:+(pinned) }v$cur theek chal raha hai"; return; fi
+  if [ "$broken" = 1 ]; then act="repair"; info "$label chal nahi raha (v${cur:-?}), v$want laga raha hoon"
+  elif [ "$have" = 1 ]; then act="update"; [ -n "$cur" ] && [ -n "$want" ] && info "$label: v$cur -> v$want"
+  else act="install"; fi
+  if retry 2 "$label $act (v${want:-latest})" npm i -g "$pkg@${pin:-latest}" --no-fund --no-audit --loglevel=error; then
     hash -r 2>/dev/null; v="$(ver_npm "$pkg")"; ok "$label $act ho gaya${v:+ (v$v)} (${LASTT}s)"
-  elif [ "$have" = 1 ]; then warn "$label update fail, purana version chalega"; showlog
-  elif [ "$fatal" = 1 ]; then bad "$label install nahi hua. Haath se: npm i -g $pkg"; showlog
+  elif [ "$have" = 1 ] && [ "$broken" = 0 ]; then warn "$label update fail, purana version chalega"; showlog
+  elif [ "$fatal" = 1 ]; then bad "$label install nahi hua. Haath se: npm i -g $pkg@${pin:-latest}"; showlog
   else warn "$label global install fail. Koi dikkat nahi, 'c' npx se chalayega"; showlog; fi
 }
-npm_latest @anthropic-ai/claude-code "Claude Code" claude 1
+npm_latest @anthropic-ai/claude-code "Claude Code" claude 1 "$CLAUDE_PIN"
 npm_latest omniroute "OmniRoute" omniroute 0
 
 # ---------- 4. Scripts ----------
@@ -341,7 +347,9 @@ chk npm     "npm -v"
 chk git     "git --version | awk '{print \$3}'"
 chk jq      "jq --version"
 chk tmux    "tmux -V | awk '{print \$2}'"
-chk claude  "claude --version"
+cv="$($TO20 claude --version 2>&1)"; crc=$?
+if [ "$crc" -eq 0 ] && [ -n "$cv" ]; then ok "$(printf '%-12s %s' claude "$(echo "$cv" | head -1)")"
+else bad "$(printf '%-12s NAHI CHAL RAHA' claude)"; echo "$cv" | head -4 | sed 's/^/   | /'; info "Fix: npm i -g @anthropic-ai/claude-code@${CLAUDE_PIN:-latest}"; fi
 chk omniroute "command -v omniroute >/dev/null && echo v\$(npm ls -g --depth=0 omniroute 2>/dev/null | grep -o 'omniroute@[^ ]*' | head -1 | sed 's/.*@//')" 0
 for f in c c-open c-panel c-stop; do [ -x "$BIN/$f" ] || bad "$f command nahi bana"; done
 [ -x "$BIN/c" ] && ok "$(printf '%-12s %s' 'c command' 'taiyaar')"
