@@ -1,0 +1,49 @@
+#!/data/data/com.termux/files/usr/bin/bash
+H="$HOME"; S="$H/.c-state"; SET="$H/.claude/settings.json"; RP=20129
+mkdir -p "$S/clients" "$S/m"
+SN="c-$$"; RS="$S/run-claude-$$.sh"
+cleanup(){
+  trap - EXIT
+  rm -f "$S/clients/$$" "$RS"; tmux kill-session -t "$SN" 2>/dev/null
+  local alive=0 f
+  for f in "$S/clients"/*; do [ -e "$f" ] || continue; if kill -0 "$(basename "$f")" 2>/dev/null; then alive=1; else rm -f "$f"; fi; done
+  if [ "$alive" = 0 ]; then c-stop; fi
+}
+trap cleanup EXIT; trap 'exit 130' INT TERM HUP
+touch "$S/clients/$$"
+command -v node >/dev/null || { echo "node missing"; exit 1; }
+B=$(jq -r '.env.ANTHROPIC_BASE_URL // empty' "$SET" 2>/dev/null)
+case "$B" in *127.0.0.1:$RP*|"") B=http://localhost:20128;; esac
+B=${B%/}; ROOT=${B%/v1}
+code(){ curl -s -o /dev/null -m 3 -w '%{http_code}' "$ROOT/v1/models" 2>/dev/null; }
+if [ "$(code)" = "000" ]; then
+  D="$H/AI-Tools/OmniRoute"; [ -d "$D" ] && LOGF="$D/omniroute.log" || { D="$H"; LOGF="$S/omniroute.log"; }
+  if command -v omniroute >/dev/null; then OMNI=(omniroute); else OMNI=(npx -y omniroute@latest); fi
+  ( cd "$D"; exec nohup "${OMNI[@]}" >>"$LOGF" 2>&1 </dev/null ) &
+fi
+pgrep -f c-tester.sh >/dev/null || nohup "$PREFIX/bin/c-tester.sh" "$ROOT" >"$S/tester.log" 2>&1 </dev/null &
+OP=20130
+pgrep -f c-health.sh >/dev/null || nohup "$PREFIX/bin/c-health.sh" "$ROOT" >"$S/health.log" 2>&1 </dev/null &
+curl -s -m 2 "http://127.0.0.1:$OP/__ok" 2>/dev/null | grep -q '^ok' || nohup node "$S/office.js" "$OP" "$ROOT" >>"$S/office.out" 2>&1 </dev/null &
+command -v termux-wake-lock >/dev/null 2>&1 && termux-wake-lock 2>/dev/null
+( c-open all >/dev/null 2>&1 </dev/null & )
+rok(){ curl -s -m 2 "http://127.0.0.1:$RP/__c/health" 2>/dev/null | grep -q '^ok'; }
+rok || { nohup node "$S/router.js" "$ROOT" "$RP" >>"$S/router.out" 2>&1 </dev/null & }
+SS="$S/session-$$.json"
+jq -nc --arg u "http://127.0.0.1:$RP" '{model:"c-auto",env:{ANTHROPIC_BASE_URL:$u,ANTHROPIC_MODEL:"c-auto",ANTHROPIC_SMALL_FAST_MODEL:"c-fast",ANTHROPIC_DEFAULT_OPUS_MODEL:"c-best",ANTHROPIC_DEFAULT_SONNET_MODEL:"c-mid",ANTHROPIC_DEFAULT_HAIKU_MODEL:"c-fast",CLAUDE_CODE_SUBAGENT_MODEL:"c-auto"}}' > "$SS"
+ARGS="--settings '$SS'"; [ $# -gt 0 ] && ARGS="$ARGS $(printf '%q ' "$@")"
+{ echo '#!/data/data/com.termux/files/usr/bin/bash'; echo "claude $ARGS"; echo "rm -f '$SS'; tmux kill-session -t $SN 2>/dev/null"; } > "$RS"
+if command -v tmux >/dev/null; then
+  tmux new-session -d -s "$SN" -n claude "bash $RS"
+  tmux new-window -t "$SN" -n models "bash $S/view.sh"
+  tmux select-window -t "$SN:claude"
+  tmux set-option -t "$SN" mouse on
+  tmux set-option -t "$SN" status on
+  tmux set-option -t "$SN" status-interval 2
+  tmux set-option -t "$SN" status-left " c "
+  tmux set-option -t "$SN" status-right-length 140
+  tmux set-option -t "$SN" status-right "#(cat $S/status 2>/dev/null || echo testing...) | #(cat $S/active 2>/dev/null || echo waiting) "
+  tmux attach -t "$SN"
+else
+  bash "$RS"
+fi

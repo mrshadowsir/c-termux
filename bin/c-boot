@@ -1,0 +1,20 @@
+#!/data/data/com.termux/files/usr/bin/bash
+H="$HOME"; S="$H/.c-state"; SET="$H/.claude/settings.json"; RP=20129; ME="${1:-$PPID}"
+mkdir -p "$S/clients" "$S/m"; a=0
+for f in "$S/clients"/*; do [ -e "$f" ] || continue; b=$(basename "$f")
+  if [ "$b" != "$ME" ] && kill -0 "$b" 2>/dev/null; then a=1; else rm -f "$f"; fi; done
+[ "$a" = 0 ] && c-stop
+touch "$S/clients/$ME"
+B=$(jq -r '.env.ANTHROPIC_BASE_URL // empty' "$SET" 2>/dev/null)
+case "$B" in *127.0.0.1:$RP*|"") B=http://localhost:20128;; esac
+B=${B%/}; ROOT=${B%/v1}
+if [ "$(curl -s -o /dev/null -m 3 -w '%{http_code}' "$ROOT/v1/models" 2>/dev/null)" = "000" ]; then
+  D="$H/AI-Tools/OmniRoute"; [ -d "$D" ] && LOGF="$D/omniroute.log" || { D="$H"; LOGF="$S/omniroute.log"; }
+  if command -v omniroute >/dev/null; then OMNI=(omniroute); else OMNI=(npx -y omniroute@latest); fi
+  ( cd "$D"; exec nohup "${OMNI[@]}" >>"$LOGF" 2>&1 </dev/null ) &
+fi
+pgrep -f c-tester.sh >/dev/null || nohup "$PREFIX/bin/c-tester.sh" "$ROOT" >"$S/tester.log" 2>&1 </dev/null &
+curl -s -m 2 "http://127.0.0.1:$RP/__c/health" 2>/dev/null | grep -q '^ok' || nohup node "$S/router.js" "$ROOT" "$RP" >>"$S/router.out" 2>&1 </dev/null &
+curl -s -m 2 "http://127.0.0.1:20130/__ok" 2>/dev/null | grep -q '^ok' || nohup node "$S/office.js" 20130 "$ROOT" >>"$S/office.out" 2>&1 </dev/null &
+[ -x "$PREFIX/bin/c-health.sh" ] && { pgrep -f c-health.sh >/dev/null || nohup "$PREFIX/bin/c-health.sh" "$ROOT" >"$S/health.log" 2>&1 </dev/null & }
+exit 0

@@ -1,0 +1,9 @@
+#!/data/data/com.termux/files/usr/bin/bash
+S="$HOME/.c-state"
+pkill -f c-health.sh 2>/dev/null; pkill -f c-tester.sh 2>/dev/null
+pkill -f "$S/office.js" 2>/dev/null; pkill -f "$S/router.js" 2>/dev/null; pkill -f 'c-state/view.sh' 2>/dev/null
+pkill -f omniroute 2>/dev/null; sleep 1; pkill -9 -f omniroute 2>/dev/null
+tmux ls -F '#S' 2>/dev/null | grep -E '^c-[0-9]+$' | while read -r s; do tmux kill-session -t "$s" 2>/dev/null; done
+rm -f "$S"/*.pid "$S/active" "$S/tiers.txt" "$S/health.txt"
+command -v termux-wake-unlock >/dev/null && termux-wake-unlock 2>/dev/null
+exit 0

@@ -1,0 +1,30 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# c-open [all|office|omni] [-f]  -> browser mein 3D Office + OmniRoute Dashboard kholta hai
+S="$HOME/.c-state"; OP=20130; SET="$HOME/.claude/settings.json"; mkdir -p "$S"
+WHAT=all; FORCE=0
+for a in "$@"; do case "$a" in -f) FORCE=1;; all|office|omni) WHAT=$a;; esac; done
+B=$(jq -r '.env.ANTHROPIC_BASE_URL // empty' "$SET" 2>/dev/null)
+case "$B" in *127.0.0.1:20129*|"") B=http://localhost:20128;; esac
+B=${B%/}; ROOT=${B%/v1}
+if [ "$FORCE" = 0 ]; then
+  [ -n "${C_NOOPEN:-}" ] && exit 0
+  last=$(cat "$S/opened" 2>/dev/null || echo 0); [ $(( $(date +%s) - last )) -lt 20 ] && exit 0
+fi
+date +%s > "$S/opened"
+opener(){
+  if command -v termux-open-url >/dev/null 2>&1; then termux-open-url "$1" >/dev/null 2>&1 && return 0; fi
+  if [ -n "${TERMUX_VERSION:-}" ] || [ -d /data/data/com.termux ]; then
+    am start -a android.intent.action.VIEW -d "$1" >/dev/null 2>&1 && return 0
+  fi
+  if grep -qi microsoft /proc/version 2>/dev/null; then
+    if command -v wslview >/dev/null 2>&1; then wslview "$1" >/dev/null 2>&1 && return 0; fi
+    if command -v explorer.exe >/dev/null 2>&1; then explorer.exe "$1" >/dev/null 2>&1; return 0; fi
+  fi
+  if command -v xdg-open >/dev/null 2>&1; then xdg-open "$1" >/dev/null 2>&1 & return 0; fi
+  if command -v open >/dev/null 2>&1; then open "$1" >/dev/null 2>&1; return 0; fi
+  echo "Browser auto-open nahi hua. Manually kholo: $1"; return 1
+}
+waitup(){ local i=0; while [ $i -lt 90 ]; do [ "$(curl -s -o /dev/null -m 2 -w '%{http_code}' "$1" 2>/dev/null)" != "000" ] && return 0; sleep 1; i=$((i+1)); done; return 1; }
+if [ "$WHAT" = all ] || [ "$WHAT" = office ]; then waitup "http://127.0.0.1:$OP/__ok" && opener "http://localhost:$OP/"; fi
+if [ "$WHAT" = all ] || [ "$WHAT" = omni ]; then waitup "$ROOT/v1/models" && { [ "$WHAT" = all ] && sleep 2; opener "$ROOT/"; }; fi
+exit 0
