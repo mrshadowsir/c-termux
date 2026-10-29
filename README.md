@@ -168,7 +168,7 @@ Android Termux ko background mein band kar deta hai. Ye script se nahi hat sakta
 2. Termux ki notification mein **Acquire wakelock** dabao (script bhi koshish karta hai).
 3. Android 12+: Developer options > **Disable child process restrictions** ON.
 
-Tester ab halka chalta hai (ek saath 3 model, FAIL 20 min baad dobara test). Badalna ho: `C_PAR=2`, `C_FAIL_RETEST=3600`.
+Tester 2 phase mein chalta hai: pehle jaldi jaldi jab tak 2 model PASS na ho jayein, phir ek-ek karke dheere (har model ke beech 5 sec), FAIL models 20 min baad dobara. Badalna ho: `C_FAST_N=2`, `C_SLOW_GAP=5`, `C_FAIL_RETEST=3600`.
 
 ---
 
