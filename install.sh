@@ -73,7 +73,7 @@ if [ "$PLAT" = termux ]; then BIN="${PREFIX:-/data/data/com.termux/files/usr}/bi
 export PATH="$BIN:$PATH"
 [ "$PLAT" != termux ] && export NPM_CONFIG_PREFIX="$H/.local"
 BASHP="$(command -v bash)"
-OMNI="http://localhost:20128"; OFFICE="http://localhost:20130"
+OMNI="http://localhost:20128"
 TO30=""; TO180=""; TO20=""
 command -v timeout >/dev/null 2>&1 && { TO30="timeout 30"; TO180="timeout 180"; TO20="timeout 20"; }
 
@@ -226,14 +226,14 @@ pkill -f c-tester.sh 2>/dev/null; pkill -f "$S/router.js" 2>/dev/null; pkill -f 
 inst(){ # src dst mode : shebang + PATH + $PREFIX/bin is platform ke hisab se
   { echo "#!$BASHP"; echo "export PATH=\"$BIN:\$PATH\""; tail -n +2 "$1" | sed "s|\$PREFIX/bin|$BIN|g"; } > "$2.tmp" && chmod "$3" "$2.tmp" && mv "$2.tmp" "$2"
 }
-for f in "$R"/bin/*; do inst "$f" "$BIN/$(basename "$f")" 755; done
+rm -f "$S/office.js" "$S/office.html" "$S/office.out"   # purana Office hata diya
+for t in install.sh README.md; do [ -f "$BIN/$t" ] && grep -q c-termux "$BIN/$t" 2>/dev/null && rm -f "$BIN/$t"; done   # galti se copy hui files
+for f in c c-boot c-stop c-leave c-panel c-open c-health.sh c-tester.sh; do inst "$R/bin/$f" "$BIN/$f" 755 || { bad "$f copy nahi hua"; exit 1; }; done
 install -m 644 "$R/lib/router.js" "$S/router.js"
-install -m 644 "$R/lib/office.js" "$S/office.js"
-install -m 644 "$R/lib/office.html" "$S/office.html"
 inst "$R/lib/view.sh" "$S/view.sh" 755
 for f in c c-boot c-stop c-leave c-panel c-open c-health.sh c-tester.sh; do bash -n "$BIN/$f" 2>>"$LOG" || { bad "SYNTAX ERR $f"; exit 1; }; done
-node --check "$S/router.js" 2>>"$LOG" && node --check "$S/office.js" 2>>"$LOG" || { bad "JS syntax error"; exit 1; }
-ok "8 commands + router + office install, syntax check pass"
+node --check "$S/router.js" 2>>"$LOG" || { bad "JS syntax error"; exit 1; }
+ok "8 commands + router install, syntax check pass"
 
 # ---------- 5. Claude settings ----------
 step "Claude settings (token repo mein nahi hota)"
@@ -270,16 +270,15 @@ else
 fi
 
 # ---------- 7. Services start + dono dashboard browser mein ----------
-step "Services start aur dono dashboard browser mein"
+step "Services start aur OmniRoute dashboard browser mein"
 if c-boot $$ >>"$LOG" 2>&1; then ok "services start command chali"; else warn "c-boot mein dikkat, log dekho"; fi
 if wait_http "$OMNI/v1/models" 150; then ok "OmniRoute chal raha hai ($OMNI)"
 else bad "OmniRoute start nahi hua (150 sec)"; [ -f "$S/omniroute.log" ] && tail -n 8 "$S/omniroute.log" | sed 's/^/   | /'; showlog; fi
-if wait_http "$OFFICE/__ok" 30; then ok "3D Office chal raha hai ($OFFICE)"; else warn "3D Office abhi nahi chala. Baad mein: c-open"; fi
 if [ -n "${C_NOOPEN:-}" ]; then info "C_NOOPEN set hai, browser nahi khola"
 else
-  c-open omni -f >>"$LOG" 2>&1; sleep 2; c-open office -f >>"$LOG" 2>&1
-  ok "browser mein OmniRoute aur 3D Office khol diye"
-  info "Agar browser na khule: link haath se kholo ->  $OMNI   aur   $OFFICE"
+  c-open -f >>"$LOG" 2>&1
+  ok "browser mein OmniRoute dashboard khol diya"
+  info "Agar browser na khule: link haath se kholo ->  $OMNI"
   [ "$PLAT" = termux ] && info "Phir bhi na khule: Android Settings > Apps > Termux > Display over other apps ON karo"
 fi
 
@@ -374,7 +373,6 @@ printf '%sTime: %ss   Log: %s%s\n' "$D" "$((SECONDS-T0))" "$LOG" "$N"
 if [ "$FAILS" -eq 0 ]; then
   printf '%sVERDICT: INSTALL OK%s' "$G$B" "$N"; [ "$WARNS" -gt 0 ] && printf '  (%d warning, upar ! dekho)' "$WARNS"; echo
   echo
-  echo "  3D Office           -> $OFFICE"
   echo "  OmniRoute Dashboard -> $OMNI   (providers/keys yahan)"
   echo "  Roz ka use: c   |   Browser dobara: c-open   |   Status: c-panel   |   Sab band: c-stop"
   echo

@@ -1,10 +1,9 @@
 # c-termux
 
-Ek command `c` = **Claude Code + OmniRoute + ECC agents + 3D Office dashboard**.
+Ek command `c` = **Claude Code + OmniRoute + ECC agents**.
 
 - Background mein har model test hota hai (text + tool-call). Sirf **PASS** models use hote hain.
 - Model fail ya token khatam ho to router agle PASS model par switch karta hai. FAIL models auto-retest hote hain.
-- **3D Office** `http://localhost:20130`: sab agents ek office mein (WORKING / IDLE / REST / STANDBY).
 - **OmniRoute Dashboard** `http://localhost:20128`: yahan providers / API keys jodo.
 
 > Har command ek **copy box** mein hai. Copy icon dabao, Termux/terminal mein **paste** karo, Enter dabao.
@@ -32,7 +31,7 @@ Ek command `c` = **Claude Code + OmniRoute + ECC agents + 3D Office dashboard**.
 2. **Packages:** `git jq tmux nodejs curl` pehle check hote hain. Naya version ho to update, na ho to install.
 3. **Claude Code + OmniRoute:** version compare hota hai. Latest ho to skip, purana ho to update.
 4. **Scripts + settings** install.
-5. **Services start** ho jati hain aur **browser mein dono dashboard khulte hain**: pehle OmniRoute, phir 3D Office.
+5. **Services start** ho jati hain aur **browser mein OmniRoute dashboard khulta hai**.
 6. **API key:** aap OmniRoute dashboard mein provider jodkar key banate ho. Installer key maangta hai, check karta hai (galat ho to dobara poochta hai), save karta hai aur services naye key ke saath restart karta hai.
 7. **ECC** plugin apne aap install/setup.
 8. **Final check:** `c-panel` mein models PASS dikhein to **Claude khud start ho jata hai**.
@@ -62,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/install.s
 
 Purana command (`setup.sh` wala) bhi chalta hai, wo bhi yahi installer chalata hai.
 
-**Browser na khule to (ek baar):** Android Settings > Apps > Termux > **Display over other apps** ON karo. Ya links haath se kholo: `http://localhost:20128` aur `http://localhost:20130`.
+**Browser na khule to (ek baar):** Android Settings > Apps > Termux > **Display over other apps** ON karo. Ya link haath se kholo: `http://localhost:20128`.
 
 ### Manual tareeka (agar upar wali command na chale)
 
@@ -153,23 +152,23 @@ Misal: `C_SKIP_UPDATE=1 bash ~/c-termux/install.sh`
 
 ---
 
-## 3D Office mein kya dikhta hai
-
-- Har agent ki ek desk. **Hara + glow + typing** = abhi kaam kar raha (pichhle 20 sec mein call), **peela** = idle (5 min tak), **neela-dhundhla** = rest, **kala** = standby.
-- `MAIN` = aapka main Claude Code session, `QUICK` = chhote/fast kaam.
-- Neeche server racks = PASS models (LED hara = abhi use mein).
-- Agent par tap/click = uski detail. Filter tabs + search bhi hai.
-- Upar chips: OmniRoute / Router / Tester / Health / ECC ka OK ya `!!` status.
-- Layout force: `http://localhost:20130/m` (mobile) ya `/d` (desktop).
-
----
-
 ## Security
 
 - Token / API key repo mein nahi hai. `install.sh` use `~/.claude/settings.json` mein likhta hai (`chmod 600`).
-- Office server sirf `127.0.0.1` par sunta hai (network par khula nahi).
 - OmniRoute dashboard mein API key **zaroor require** karo.
 - Apni API key kisi ko share mat karo, na hi GitHub par daalo.
+
+---
+
+## Phone mein `[Process completed (signal 9)]` aaye to
+
+Android Termux ko background mein band kar deta hai. Ye script se nahi hat sakta, settings badalni padti hain:
+
+1. Android Settings > Apps > Termux > Battery > **Allow background power usage** (Restrict nahi).
+2. Termux ki notification mein **Acquire wakelock** dabao (script bhi koshish karta hai).
+3. Android 12+: Developer options > **Disable child process restrictions** ON.
+
+Tester ab halka chalta hai (ek saath 3 model, FAIL 20 min baad dobara test). Badalna ho: `C_PAR=2`, `C_FAIL_RETEST=3600`.
 
 ---
 
