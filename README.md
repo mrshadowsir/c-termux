@@ -4,11 +4,10 @@ Ek command `c` = **Claude Code + OmniRoute + ECC agents + 3D Office dashboard**.
 
 - Background mein har model test hota hai (text + tool-call). Sirf **PASS** models use hote hain.
 - Model fail ya token khatam ho to router agle PASS model par switch karta hai. FAIL models auto-retest hote hain.
-- `c` chalate hi browser mein 2 page khulte hain:
-  - **3D Office** `http://localhost:20130` : sab agents ek office mein (WORKING / IDLE / REST / STANDBY).
-  - **OmniRoute Dashboard** `http://localhost:20128` : yahan providers / API keys jodo.
+- **3D Office** `http://localhost:20130`: sab agents ek office mein (WORKING / IDLE / REST / STANDBY).
+- **OmniRoute Dashboard** `http://localhost:20128`: yahan providers / API keys jodo.
 
-> **Kaise padhein:** Har command ek **copy box** mein hai. Box ke kone mein **copy icon** dabao, phir Termux ya terminal mein **paste** karke Enter dabao. Sirf apne section ki commands chalao.
+> Har command ek **copy box** mein hai. Copy icon dabao, Termux/terminal mein **paste** karo, Enter dabao.
 
 ---
 
@@ -25,80 +24,59 @@ Ek command `c` = **Claude Code + OmniRoute + ECC agents + 3D Office dashboard**.
 
 ---
 
+## Ek hi installer: kya kya khud hota hai
+
+`install.sh` ek hi file hai. Naya install ho ya update, command wahi hai (dobara chalana safe hai):
+
+1. **System check:** platform, storage, internet.
+2. **Packages:** `git jq tmux nodejs curl` pehle check hote hain. Naya version ho to update, na ho to install.
+3. **Claude Code + OmniRoute:** version compare hota hai. Latest ho to skip, purana ho to update.
+4. **Scripts + settings** install.
+5. **Services start** ho jati hain aur **browser mein dono dashboard khulte hain**: pehle OmniRoute, phir 3D Office.
+6. **API key:** aap OmniRoute dashboard mein provider jodkar key banate ho. Installer key maangta hai, check karta hai (galat ho to dobara poochta hai), save karta hai aur services naye key ke saath restart karta hai.
+7. **ECC** plugin apne aap install/setup.
+8. **Final check:** `c-panel` mein models PASS dikhein to **Claude khud start ho jata hai**.
+
+---
+
 ## A. Phone (Termux)
 
 > Termux **F-Droid** wali lo. Play Store wali purani hai aur kaam nahi karti.
 
-### Sabse aasan: sirf 1 command (har naye phone par yahi)
+Termux kholo, ye ek command paste karo:
 
-Termux kholo, ye ek command paste karo aur Enter dabao. Baaki sab (packages, download, install, settings) **khud hota hai**. Bas ek baar API key poochhegi.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/setup.sh | bash
+```
+curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/install.sh | bash
 ```
 
-Key pehle se command mein dena ho (phir kuch poochhega hi nahi):
+Phir:
+1. Browser mein OmniRoute khulega. Wahan **provider jodo** aur **API key banao**.
+2. Termux mein key paste karo (likhte waqt kuch dikhta nahi, ye normal hai).
+3. Baaki sab khud hoga. Aakhir mein Claude start ho jayega.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/setup.sh | C_TOKEN=apni_key_yahan bash
+Key pehle se command mein dena ho (phir kuch poochhega nahi):
+
+```
+curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/install.sh | C_TOKEN=apni_key_yahan bash
 ```
 
-Khatam hone par Termux ko Exit karke dobara kholo. Services apne aap start ho jayengi. Phir likho `c`.
+Purana command (`setup.sh` wala) bhi chalta hai, wo bhi yahi installer chalata hai.
 
-Ye command dobara chalana safe hai. Ye purana version update bhi kar deta hai.
+**Browser na khule to (ek baar):** Android Settings > Apps > Termux > **Display over other apps** ON karo. Ya links haath se kholo: `http://localhost:20128` aur `http://localhost:20130`.
 
 ### Manual tareeka (agar upar wali command na chale)
 
-**Step 1: Termux kholo aur packages update karo** (sabse pehle, yahi step sabse zaroori hai)
-
-```bash
-pkg update -y
 ```
-
-Agar beech mein `Y/I/N` poochhe to `Y` likh kar Enter dabao.
-
-**Step 2: Zaroori packages install karo**
-
-```bash
-pkg install -y git jq tmux nodejs curl procps coreutils
+pkg update -y && pkg install -y git curl
 ```
-
-**Step 3: Check karo ki sab install hue** (3 versions dikhne chahiye)
-
-```bash
-jq --version && tmux -V && node -v
 ```
-
-**Step 4: Repo download karo aur installer chalao**
-
-```bash
 git clone https://github.com/mrshadowsir/c-termux.git
 ```
-
-```bash
+```
 cd c-termux && bash install.sh
 ```
 
-**Step 5: API key**
-
-Jab `OmniRoute API key` poochhe, key paste karo. Abhi nahi hai to sirf Enter dabao, baad mein bhi daal sakte ho. Key likhte waqt kuch dikhta nahi, ye normal hai.
-
-**Step 6: Termux ko Exit karke dobara kholo**
-
-```bash
-exit
-```
-
-**Step 7: Start karo**
-
-```bash
-c
-```
-
-Browser mein 3D Office aur OmniRoute Dashboard khulenge. Dashboard mein providers/keys jodo.
-
-**Browser auto-open ke liye (ek baar):** Android Settings > Apps > Termux > **Display over other apps** ON karo.
-Behtar: `pkg install termux-api` aur F-Droid se **Termux:API** app install karo.
+Script padhke chalana ho to chalane se pehle `cat install.sh` se dekh lo.
 
 ---
 
@@ -106,62 +84,28 @@ Behtar: `pkg install termux-api` aur F-Droid se **Termux:API** app install karo.
 
 > Windows par seedha nahi chalta. **WSL** (Ubuntu) chahiye.
 
-**Step 1: PowerShell ko "Run as administrator" se kholo aur WSL install karo**
+1. PowerShell ko "Run as administrator" se kholo:
 
-```powershell
+```
 wsl --install
 ```
 
-**Step 2: PC restart karo**, phir Start menu se **Ubuntu** kholo (pehli baar apna naya username/password banana padega. Ye Ubuntu ka login hai, GitHub ka nahi).
+2. PC restart karo, Start menu se **Ubuntu** kholo (pehli baar naya username/password banao, ye Ubuntu ka login hai, GitHub ka nahi).
+3. Ubuntu mein:
 
-**Step 3: Ubuntu mein packages update karo**
-
-```bash
+```
 sudo apt update && sudo apt install -y git curl
 ```
-
-**Step 4: Repo download karo aur installer chalao**
-
-```bash
-git clone https://github.com/mrshadowsir/c-termux.git
 ```
-
-```bash
-cd c-termux && bash install.sh
-```
-
-**Step 5: Ubuntu band karke dobara kholo, phir:**
-
-```bash
-c
+curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/install.sh | bash
 ```
 
 ---
 
 ## C. Linux PC
 
-**Sabse aasan (1 command):**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/setup.sh | bash
 ```
-
-Ya manual:
-
-**Step 1: Repo download karo aur installer chalao** (git, node 18+, tmux, jq khud install hote hain)
-
-```bash
-git clone https://github.com/mrshadowsir/c-termux.git
-```
-
-```bash
-cd c-termux && bash install.sh
-```
-
-**Step 2: Naya terminal kholo, phir:**
-
-```bash
-c
+curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/install.sh | bash
 ```
 
 Computer par autostart nahi hota: `c` chalao to sab start, `c` band karo to sab band.
@@ -170,22 +114,10 @@ Computer par autostart nahi hota: `c` chalao to sab start, `c` band karo to sab 
 
 ## D. Mac
 
-> Pehle **Homebrew** (`brew`) install hona chahiye. Mac par best-effort support hai, pura test nahi hua.
+> Pehle **Homebrew** (`brew`) chahiye. Mac par best-effort support hai, pura test nahi hua.
 
-**Step 1: Repo download karo aur installer chalao**
-
-```bash
-git clone https://github.com/mrshadowsir/c-termux.git
 ```
-
-```bash
-cd c-termux && bash install.sh
-```
-
-**Step 2: Naya terminal kholo, phir:**
-
-```bash
-c
+curl -fsSL https://raw.githubusercontent.com/mrshadowsir/c-termux/main/install.sh | bash
 ```
 
 ---
@@ -200,58 +132,35 @@ c
 | Live status | `c-panel -w` |
 | Sab band karo | `c-stop` |
 
-Start karo:
+`c-panel` ki last line `VERDICT: ALL OK` ho to sab theek hai.
 
-```bash
-c
+**Update karna ho (packages + Claude Code + OmniRoute + c-termux):**
+
+```
+cd ~/c-termux && bash install.sh
 ```
 
-Browser pages dobara kholo (`c-open office` ya `c-open omni` bhi chalta hai):
+Options (command ke aage lagao):
 
-```bash
-c-open
-```
+| Option | Kaam |
+|---|---|
+| `C_TOKEN=key` | API key pehle se do |
+| `C_SKIP_UPDATE=1` | update check skip (tez) |
+| `C_NOOPEN=1` | browser mat kholo |
+| `C_NOSTART=1` | end mein Claude start mat karo |
 
-Status dekho. Last line `VERDICT: ALL OK` ho to sab theek hai:
-
-```bash
-c-panel
-```
-
-Sab band karo:
-
-```bash
-c-stop
-```
-
-Auto-open band karna ho:
-
-```bash
-export C_NOOPEN=1
-```
-
-**API key baad mein daalni ho:**
-
-```bash
-C_TOKEN=apni_key_yahan bash ~/c-termux/install.sh
-```
-
-**Naya version update karna ho:**
-
-```bash
-cd ~/c-termux && git pull && bash install.sh
-```
+Misal: `C_SKIP_UPDATE=1 bash ~/c-termux/install.sh`
 
 ---
 
 ## 3D Office mein kya dikhta hai
 
-- Har agent ki ek desk. **Hara + glow + typing** = abhi kaam kar raha (pichhle 20 sec mein call), **peela** = idle (5 min tak), **neela-dhundhla** = rest, **kala** = standby (abhi tak call nahi).
+- Har agent ki ek desk. **Hara + glow + typing** = abhi kaam kar raha (pichhle 20 sec mein call), **peela** = idle (5 min tak), **neela-dhundhla** = rest, **kala** = standby.
 - `MAIN` = aapka main Claude Code session, `QUICK` = chhote/fast kaam.
 - Neeche server racks = PASS models (LED hara = abhi use mein).
-- Agent par tap/click = list mein uski detail. List mein filter tabs + search.
+- Agent par tap/click = uski detail. Filter tabs + search bhi hai.
 - Upar chips: OmniRoute / Router / Tester / Health / ECC ka OK ya `!!` status.
-- Layout force karna ho: `http://localhost:20130/m` (mobile) ya `/d` (desktop).
+- Layout force: `http://localhost:20130/m` (mobile) ya `/d` (desktop).
 
 ---
 
@@ -266,95 +175,33 @@ cd ~/c-termux && git pull && bash install.sh
 
 ## F. Dikkat aaye to
 
-### `jq` / `tmux` / `node` install nahi hua (ABORT message)
+Poora log: `~/.c-state/install.log`
 
-Packages ki list purani hai. Ye 3 commands ek ek karke chalao:
+**Packages install nahi hue (ABORT):**
 
-```bash
-pkg update -y
 ```
-
-```bash
-pkg install -y git jq tmux nodejs curl procps coreutils
-```
-
-```bash
-cd ~/c-termux && bash install.sh
-```
-
-Agar `Unable to locate package` ya mirror error aaye:
-
-```bash
 termux-change-repo
 ```
 
-Arrow keys aur Space se koi ek mirror chuno, OK dabao, phir upar ki 3 commands dobara chalao.
+Koi mirror chuno (arrow keys + Space, phir OK), phir `cd ~/c-termux && bash install.sh`.
 
-### `git clone` ke time Username/Password poochhe
+**`c: command not found`:** Termux Exit karke dobara kholo, ya `source ~/.bashrc`.
 
-URL galat type hua hoga. Ctrl + C dabao, phir purana folder hatao aur URL **copy-paste** karo:
+**Browser nahi khula:** `c-open`, ya seedha `http://localhost:20128` kholo. Termux mein "Display over other apps" ON karo.
 
-```bash
-cd ~ && rm -rf c-termux
-```
+**API key galat bataya:** OmniRoute dashboard mein key dobara copy karo, phir `cd ~/c-termux && bash install.sh`.
 
-```bash
-git clone https://github.com/mrshadowsir/c-termux.git
-```
+**Claude start nahi hua (models PASS nahi):** Dashboard (`http://localhost:20128`) mein provider/key jodo, 2 min ruko (auto-retest hota hai), phir `c-panel` dekho, phir `c`.
 
-### `c: command not found`
+**`c-panel` mein `!!`:** Kuch der ruko. Phir bhi ho to `c-stop` aur `c`.
 
-Termux: Exit karke dobara kholo. Computer: naya terminal kholo, ya:
-
-```bash
-source ~/.bashrc
-```
-
-### Browser nahi khula
-
-```bash
-c-open
-```
-
-Ya seedha browser mein `http://localhost:20130` kholo.
-
-### `c-panel` mein `!!` dikhe
-
-Kuch der ruko (models test ho rahe hain). Phir bhi ho to:
-
-```bash
-c-stop
-```
-
-```bash
-c
-```
-
-### Agents 0 ya ECC `!!`
-
-Installer dobara chalao (ECC plugin auto-install karta hai):
-
-```bash
-cd ~/c-termux && bash install.sh
-```
-
-Nahi ho to Claude Code ke andar ye 2 commands chalao:
+**Agents 0 ya ECC `!!`:** `cd ~/c-termux && bash install.sh`. Nahi ho to Claude Code ke andar:
 
 ```
 /plugin marketplace add https://github.com/affaan-m/ECC
 /plugin install ecc@ecc
 ```
 
-### `omniroute global install fail`
+**`omniroute global install fail`:** Koi dikkat nahi, `c` automatically `npx` se chalata hai.
 
-Koi dikkat nahi, `c` automatically `npx` se chalata hai.
-
-### Sab models FAIL
-
-OmniRoute dashboard (`http://localhost:20128`) mein provider/key jodo, phir 2 min ruko (auto-retest hota hai).
-
-### Phone mein "Permission denied" ya script nahi chali
-
-```bash
-chmod +x ~/c-termux/install.sh && bash ~/c-termux/install.sh
-```
+**Permission denied:** `chmod +x ~/c-termux/install.sh && bash ~/c-termux/install.sh`
