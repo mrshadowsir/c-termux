@@ -7,17 +7,16 @@ draw(){
   r=0; curl -s -m 2 "http://127.0.0.1:$RP/__c/health" 2>/dev/null | grep -q '^ok' && r=1
   t=0; [ -f "$S/tester.pid" ] && kill -0 "$(cat "$S/tester.pid")" 2>/dev/null && t=1
   h=0; [ -f "$S/health.pid" ] && kill -0 "$(cat "$S/health.pid")" 2>/dev/null && h=1
-  of=0; curl -s -m 2 http://127.0.0.1:20130/__ok 2>/dev/null | grep -q '^ok' && of=1
   f(){ [ "$1" = 1 ] && echo OK || echo "!!"; }
   echo "== c panel $(date +%H:%M:%S) =="
-  echo "OmniRoute $(f $o) | Router $(f $r) | Tester $(f $t) | Health $(f $h) | Office $(f $of)"
-  echo "Office : http://localhost:20130   Dashboard: http://localhost:20128   (c-open = browser mein kholo)"
+  echo "OmniRoute $(f $o) | Router $(f $r) | Tester $(f $t) | Health $(f $h)"
+  echo "Dashboard: http://localhost:20128   (c-open = browser mein kholo)"
   echo "Models: $(cat "$S/status" 2>/dev/null || echo starting...)"
   echo "Active: $(cat "$S/active" 2>/dev/null || echo -)"
   echo "Tiers : $(cut -c1-110 "$S/tiers.txt" 2>/dev/null || echo checking...)"
   echo "ECC   : plugin=$plug | agents ok=$agok bad=$agbad dup=$agdup"
   [ "$o" = 1 ] || bad="$bad OmniRoute"; [ "$r" = 1 ] || bad="$bad Router"; [ "$t" = 1 ] || bad="$bad Tester"
-  [ "$h" = 1 ] || bad="$bad Health"; [ "$of" = 1 ] || bad="$bad Office"; [ "$plug" = true ] || bad="$bad ECC-plugin"
+  [ "$h" = 1 ] || bad="$bad Health"; [ "$plug" = true ] || bad="$bad ECC-plugin"
   { [ "$agok" -gt 0 ] && [ "$agbad" = 0 ] && [ "$agdup" = 0 ]; } || bad="$bad agents"
   { [ -f "$S/tiers.txt" ] && ! grep -q WAIT "$S/tiers.txt"; } || bad="$bad tiers"
   if [ -z "$bad" ]; then echo "VERDICT: ALL OK - agents working"; else echo "VERDICT: STARTING/CHECK:$bad"; fi

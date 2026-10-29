@@ -22,11 +22,9 @@ if [ "$(code)" = "000" ]; then
   ( cd "$D"; exec nohup "${OMNI[@]}" >>"$LOGF" 2>&1 </dev/null ) &
 fi
 pgrep -f c-tester.sh >/dev/null || nohup "$PREFIX/bin/c-tester.sh" "$ROOT" >"$S/tester.log" 2>&1 </dev/null &
-OP=20130
 pgrep -f c-health.sh >/dev/null || nohup "$PREFIX/bin/c-health.sh" "$ROOT" >"$S/health.log" 2>&1 </dev/null &
-curl -s -m 2 "http://127.0.0.1:$OP/__ok" 2>/dev/null | grep -q '^ok' || nohup node "$S/office.js" "$OP" "$ROOT" >>"$S/office.out" 2>&1 </dev/null &
 command -v termux-wake-lock >/dev/null 2>&1 && termux-wake-lock 2>/dev/null
-( c-open all >/dev/null 2>&1 </dev/null & )
+( c-open omni >/dev/null 2>&1 </dev/null & )
 rok(){ curl -s -m 2 "http://127.0.0.1:$RP/__c/health" 2>/dev/null | grep -q '^ok'; }
 rok || { nohup node "$S/router.js" "$ROOT" "$RP" >>"$S/router.out" 2>&1 </dev/null & }
 SS="$S/session-$$.json"

@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# c-open [all|office|omni] [-f]  -> browser mein OmniRoute Dashboard + 3D Office kholta hai (pehle OmniRoute, kyunki key wahin banti hai)
-S="$HOME/.c-state"; OP=20130; SET="$HOME/.claude/settings.json"; mkdir -p "$S"
-WHAT=all; FORCE=0
-for a in "$@"; do case "$a" in -f) FORCE=1;; all|office|omni) WHAT=$a;; esac; done
+# c-open [-f]  -> browser mein OmniRoute Dashboard kholta hai
+S="$HOME/.c-state"; SET="$HOME/.claude/settings.json"; mkdir -p "$S"
+FORCE=0
+for a in "$@"; do case "$a" in -f) FORCE=1;; esac; done
 B=$(jq -r '.env.ANTHROPIC_BASE_URL // empty' "$SET" 2>/dev/null)
 case "$B" in *127.0.0.1:20129*|"") B=http://localhost:20128;; esac
 B=${B%/}; ROOT=${B%/v1}
@@ -25,7 +25,5 @@ opener(){
   echo "Browser auto-open nahi hua. Manually kholo: $1  (Termux: Settings > Apps > Termux > Display over other apps ON karo)"; return 1
 }
 waitup(){ local i=0; while [ $i -lt 90 ]; do [ "$(curl -s -o /dev/null -m 2 -w '%{http_code}' "$1" 2>/dev/null)" != "000" ] && return 0; sleep 1; i=$((i+1)); done; return 1; }
-if [ "$WHAT" = all ] || [ "$WHAT" = omni ]; then waitup "$ROOT/v1/models" && opener "$ROOT/"; fi
-[ "$WHAT" = all ] && sleep 2
-if [ "$WHAT" = all ] || [ "$WHAT" = office ]; then waitup "http://127.0.0.1:$OP/__ok" && opener "http://localhost:$OP/"; fi
+waitup "$ROOT/v1/models" && opener "$ROOT/"
 exit 0

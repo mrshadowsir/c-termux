@@ -1,6 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 S="$HOME/.c-state"; M="$S/m"; mkdir -p "$M"
 ROOT="${1:?root}"; SET="$HOME/.claude/settings.json"; PIDF="$S/tester.pid"; MAIN=$$
+# halka mode (phone band na ho): kam parallel, kam baar retest. Badalna ho: C_PAR, C_FAIL_RETEST, C_PASS_RETEST, C_LOOP_SLEEP
+PAR="${C_PAR:-3}"; FAIL_AGE="${C_FAIL_RETEST:-1200}"; PASS_AGE="${C_PASS_RETEST:-1800}"; LOOP_SLEEP="${C_LOOP_SLEEP:-60}"
 if [ -z "${ONCE:-}" ]; then
   if [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2>/dev/null && [ "$(cat "$PIDF")" != "$$" ]; then exit 0; fi
   echo $$ > "$PIDF"
@@ -40,7 +42,7 @@ due(){
   local f="$M/$1.r" st ts age
   [ -f "$f" ] || return 0
   IFS=$'\t' read -r st ts _ < "$f"; age=$(( $(date +%s) - ${ts:-0} ))
-  if [ "$st" = PASS ]; then [ "$age" -ge 900 ]; else [ "$age" -ge 120 ]; fi
+  if [ "$st" = PASS ]; then [ "$age" -ge "$PASS_AGE" ]; else [ "$age" -ge "$FAIL_AGE" ]; fi
 }
 test_one(){
   local m="$1" h st
@@ -60,10 +62,10 @@ while :; do
   while IFS= read -r m; do
     h=$(printf %s "$m" | md5sum | cut -c1-16)
     due "$h" || continue
-    while [ "$(jobs -rp | wc -l)" -ge 6 ]; do sleep 0.3; done
+    while [ "$(jobs -rp | wc -l)" -ge "$PAR" ]; do sleep 0.3; done
     test_one "$m" &
   done < <(head -n "${LIMIT:-100000}" "$S/order.txt")
   wait; write_status
   [ -n "${ONCE:-}" ] && break
-  sleep 20
+  sleep "$LOOP_SLEEP"
 done
