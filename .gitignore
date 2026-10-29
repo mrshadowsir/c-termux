@@ -1,0 +1,10 @@
+.c-state/
+*.env
+.env
+settings.json
+.claude.json
+*.log
+*.bak*
+node_modules/
+.DS_Store
+*.tmp
