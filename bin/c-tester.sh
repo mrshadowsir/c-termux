@@ -1,8 +1,12 @@
 #!/data/data/com.termux/files/usr/bin/bash
 S="$HOME/.c-state"; M="$S/m"; mkdir -p "$M"
 ROOT="${1:?root}"; SET="$HOME/.claude/settings.json"; PIDF="$S/tester.pid"; MAIN=$$
-# halka mode (phone band na ho): kam parallel, kam baar retest. Badalna ho: C_PAR, C_FAIL_RETEST, C_PASS_RETEST, C_LOOP_SLEEP
-PAR="${C_PAR:-3}"; FAIL_AGE="${C_FAIL_RETEST:-1200}"; PASS_AGE="${C_PASS_RETEST:-1800}"; LOOP_SLEEP="${C_LOOP_SLEEP:-60}"
+# 2 phase (phone band na ho):
+#   1) FAST: jab tak FAST_N models PASS na ho jayein, jaldi jaldi test (FAST_PAR ek saath)
+#   2) SLOW: uske baad ek-ek karke, har model ke beech SLOW_GAP second ruk kar (background mein dheere)
+# Badalna ho: C_FAST_N, C_FAST_PAR, C_SLOW_GAP, C_FAIL_RETEST, C_PASS_RETEST, C_LOOP_SLEEP
+FAST_N="${C_FAST_N:-2}"; FAST_PAR="${C_FAST_PAR:-3}"; SLOW_GAP="${C_SLOW_GAP:-5}"
+FAIL_AGE="${C_FAIL_RETEST:-1200}"; PASS_AGE="${C_PASS_RETEST:-1800}"; LOOP_SLEEP="${C_LOOP_SLEEP:-60}"
 if [ -z "${ONCE:-}" ]; then
   if [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2>/dev/null && [ "$(cat "$PIDF")" != "$$" ]; then exit 0; fi
   echo $$ > "$PIDF"
@@ -38,6 +42,7 @@ write_status(){
   t=$(grep -c . "$S/models.txt" 2>/dev/null)
   echo "tested $((p+f))/${t:-0} | PASS $p | FAIL $f" > "$all.s"; mv "$all.s" "$S/status"; rm -f "$all"
 }
+npass(){ cat "$M"/*.r 2>/dev/null | grep -c '^PASS'; }
 due(){
   local f="$M/$1.r" st ts age
   [ -f "$f" ] || return 0
@@ -62,8 +67,10 @@ while :; do
   while IFS= read -r m; do
     h=$(printf %s "$m" | md5sum | cut -c1-16)
     due "$h" || continue
-    while [ "$(jobs -rp | wc -l)" -ge "$PAR" ]; do sleep 0.3; done
+    if [ "$(npass)" -ge "$FAST_N" ]; then par=1; gap="$SLOW_GAP"; else par="$FAST_PAR"; gap=0; fi
+    while [ "$(jobs -rp | wc -l)" -ge "$par" ]; do sleep 0.3; done
     test_one "$m" &
+    [ "$gap" -gt 0 ] && sleep "$gap"
   done < <(head -n "${LIMIT:-100000}" "$S/order.txt")
   wait; write_status
   [ -n "${ONCE:-}" ] && break
